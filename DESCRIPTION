@@ -1,0 +1,21 @@
+Package: scheduler
+Type: Package
+Title: Create optimal schedule with respect to requirements and constraints.
+Version: 0.1.0
+Author: Guang Yang
+Maintainer: Guang Yang <gyang274@gmail.com>
+Description: Create optimal schedule with respect to requirements and constraints.
+  The scheduler package is designed to fulfill scheduling process in operation center,
+  where the requirements are often the number of agents needed at each hour each day,
+  and the constraints are often the availability of each agent at each hour each day.
+License: MIT + file LICENSE
+LazyData: TRUE
+Depends: lpSolveAPI, magrittr, ggplot2
+URL: http://github.com/gyang274/scheduler
+BugReports: http://github.com/gyang274/scheduler/issues
+RoxygenNote: 5.0.1
+Imports: lpSolveAPI, magrittr, ggplot2
+SystemRequirements: GNU make
+Suggests: knitr,
+    rmarkdown
+VignetteBuilder: knitr

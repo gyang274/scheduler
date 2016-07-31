@@ -1,0 +1,89 @@
+---
+title: "scheduler: make operation center schedules w.r.t requirements and constraints."
+author: "Guang Yang"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{scheduler}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+## scheduler
+
+scheduler is designed to fulfill scheduling process in operations, such as customer service center or warehouse fulfillment center, where the requirement are often the number of agents needed at each hour day, and the constraint are often the availability of each agent at each hour day.
+
+## An Example
+
+The package associated data `agent_requirement` demonstrates a input data format for `scheduler` - a matrix of 48 half hour window by 7 days. These are the number of agents required at each half hour window at each day.
+
+```{r, message=FALSE}
+#- load scheduler package
+library(scheduler)
+
+#- attach data in package
+data("agent_requirement")
+
+knitr::kable(agent_requirement)
+```
+
+The package associated also a visualization function for viewing the requirement:
+
+```{r, fig.align='center', fig.cap='scheduler - visulation', fig.show='hold', out.width='100%'}
+#- visualize the requirement
+scheduler::plot_schedule(m = agent_requirement, element_text_size = 4L)
+```
+
+The `scheduler` function takes `ar (agent_requirement)` as requirement, and makes shedules based on `sm (schedule module)` and `cr (constraints)` as constraints. 
+
+There are 3 built in `sm (schedule module)`:
+
++ All agents are assumed to work consecutive 5 days given a start day, e.g., when start at Thursday, agent will work on Thursday, Friday, Saturday, Sunday, Monday, and take rest on Tuesday and Wednsday.
+
++ In schedule module 1: agent will start an half hour window, say 08:30AM, work 3.5 hour, take 0.5 hour break, and work another 4.5 hour.
+
++ In schedule module 2: agent will start an half hour window, say 08:30AM, work 4.0 hour, take 0.5 hour break, and work another 4.0 hour.
+
++ In schedule module 3: agent will start an half hour window, say 08:30AM, work 4.5 hour, take 0.5 hour break, and work another 3.5 hour.
+
++ As a result, if an agent is scheduled in schedule module 1, with a start time at 08:30AM Tuesday, then he or she will work from Tuesday 08:30AM - 12:00PM, take rest 12:00PM - 12:30PM, and back to work 12:30PM - 17:00PM, and same on Wednesday, Thursday, Friday, and Saturday. He or she will take rest on Sunday, and Monday.
+
++ Similarly, if an agent is scheduled in schedule module 2, with a start time at 14:00PM Wednesday, then he or she will work from Wednesday 14:00PM - 18:00PM, take rest 18:00PM - 18:30PM, and back to work 18:30PM - 22:30PM, and same on Thursday, Friday, Saturday, Sunday. He or she will take rest on Monday, and Tuesday.
+
+The argument `cr (constraints)` takes half-hour index as contraints that should remove from start time. 
+
+The half-hour index start with 1L represents 00:00AM-00:30AM half-hour window on Sunday, 2L represents 00:30AM-01:00AM half-hour window on Sunday, ..., 48L represents 23:30AM-00:00AM half-hour window on Sunday, 49L represents 00:00AM-00:30AM half-hour window on Monday, ..., and up to 336L represents 23:30AM-00:00AM half-hour window on Saturday.
+
+By default, `cr = c(3L:12L, 51L:60L, 99L:108L, 147L:156L, 195L:204L, 243L-252L, 291L:300L)`. This implies no agent would start at 01:00AM - 05:30AM on any day.
+
+There is another argument `allow.half.hour.start` that can be used to specify whether allowing none whole hour start time. By default, `allow.half.hour.start` is `TRUE`, so start at 7:00AM and start at 7:30AM are two schedule. If `allow.half.hour.start` is set to `FALSE`, then no agent will start at 00:30AM, 01:30AM, ..., 23:30AM on any day. This is a short cut for sepecifying all corresponding contraints with `cr`.
+
+Suppose we want a schedule that can use all 3 schedule modules with default constraints that no one start between 01:00AM - 05:30AM on any day.
+
+```{r, cache=TRUE, message=FALSE}
+#- suppose we want a schedule with default setting
+(ss_list_01 <- scheduler(ar = agent_requirement, sm = c(1L, 2L, 3L)))
+```
+
+The output from `scheduler` is a list of 4 matrix `s1`, `s2`, `s3`, `ss` and a solved lp model `scheduleOptModel`.
+
+The matricies `s1`, `s2` and `s3` each is a 48 x 7 matrix of number of agents required to start at each half hour window each day. The matrix `s1`, `s2`, and `s3` are a coresponding to schedule module 1, schedule module 2, and schedule module 3, respectively. For example, `s1[14, 2] = 3` implies we need 3 agents to start at 6:30AM Monday with schedule module 1. Note that even when you specify `sm = c(2L, 3L)` when calling `scheduler`, it will still return all 3 matricies `s1`, `s2`, `s3`, only that `s1` would contains all zeros.
+
+The matrix `ss` is a 48 x 7 matrix, and is a summarize of s1, s2 and s3 to show the number of agents __available (not start)__ at each half hour window. A quality solution should have `all(ss > ar)` and `ss - ar ~ 0` in all cells.
+
+What if we want a schedule that can use schedule module 2L and 3L only, and does not all half-hour start, e.g., no agent start at 00:30AM, 01:30AM, ..., 23:30AM on any day, in addition with default constraints that no one start between 01:00AM - 05:30AM on any day.
+
+```{r, cache=TRUE, message=FALSE}
+#- suppose we want a schedule allow shedule module 2L and 3L only, 
+## and disable half-hour start, more constraints - less effective.
+ss_list_02 <- scheduler(
+  ar = agent_requirement, sm = c(2L, 3L),
+  allow.half.hour.start = FALSE)
+
+## compare the num of total agent required by solution ss_list_01 
+## and solution ss_list_02
+with(ss_list_01, sum(s1 + s2 + s3)) - with(ss_list_02, sum(s1 + s2 + s3))
+```
+
+Intuitively, `ss_list_02` is searching the solution on a sub-space of the space where `ss_list_01` is searching the solution, so it will generally reach to a sub-optimal solution. However, in this case, `ss_list_01` is searching a solution for 1008 free parameters with 336 constraints, and is trapped on a local optimal with 254 agents needed in total, whereas `ss_list_02` is searching a solution for 504 free parameters with 336 constraints, and is able to reach a relative better solution with 251 agents needed in total. This is an important note that in a problem with such many free parameters, expert knowledge is really critical in formulating the problem and solution space, and as a result reach to a practical and close to optimal solution.
+
