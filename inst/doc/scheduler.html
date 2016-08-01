@@ -1,0 +1,872 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+
+<meta charset="utf-8">
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="generator" content="pandoc" />
+
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<meta name="author" content="Guang Yang" />
+
+<meta name="date" content="2016-08-01" />
+
+<title>scheduler: make operation center schedules w.r.t requirements and constraints.</title>
+
+
+
+<style type="text/css">code{white-space: pre;}</style>
+<style type="text/css">
+div.sourceCode { overflow-x: auto; }
+table.sourceCode, tr.sourceCode, td.lineNumbers, td.sourceCode {
+  margin: 0; padding: 0; vertical-align: baseline; border: none; }
+table.sourceCode { width: 100%; line-height: 100%; }
+td.lineNumbers { text-align: right; padding-right: 4px; padding-left: 4px; color: #aaaaaa; border-right: 1px solid #aaaaaa; }
+td.sourceCode { padding-left: 5px; }
+code > span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code > span.dt { color: #902000; } /* DataType */
+code > span.dv { color: #40a070; } /* DecVal */
+code > span.bn { color: #40a070; } /* BaseN */
+code > span.fl { color: #40a070; } /* Float */
+code > span.ch { color: #4070a0; } /* Char */
+code > span.st { color: #4070a0; } /* String */
+code > span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code > span.ot { color: #007020; } /* Other */
+code > span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code > span.fu { color: #06287e; } /* Function */
+code > span.er { color: #ff0000; font-weight: bold; } /* Error */
+code > span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+code > span.cn { color: #880000; } /* Constant */
+code > span.sc { color: #4070a0; } /* SpecialChar */
+code > span.vs { color: #4070a0; } /* VerbatimString */
+code > span.ss { color: #bb6688; } /* SpecialString */
+code > span.im { } /* Import */
+code > span.va { color: #19177c; } /* Variable */
+code > span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code > span.op { color: #666666; } /* Operator */
+code > span.bu { } /* BuiltIn */
+code > span.ex { } /* Extension */
+code > span.pp { color: #bc7a00; } /* Preprocessor */
+code > span.at { color: #7d9029; } /* Attribute */
+code > span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code > span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code > span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+</style>
+
+
+
+<link href="data:text/css;charset=utf-8,body%20%7B%0Abackground%2Dcolor%3A%20%23fff%3B%0Amargin%3A%201em%20auto%3B%0Amax%2Dwidth%3A%20700px%3B%0Aoverflow%3A%20visible%3B%0Apadding%2Dleft%3A%202em%3B%0Apadding%2Dright%3A%202em%3B%0Afont%2Dfamily%3A%20%22Open%20Sans%22%2C%20%22Helvetica%20Neue%22%2C%20Helvetica%2C%20Arial%2C%20sans%2Dserif%3B%0Afont%2Dsize%3A%2014px%3B%0Aline%2Dheight%3A%201%2E35%3B%0A%7D%0A%23header%20%7B%0Atext%2Dalign%3A%20center%3B%0A%7D%0A%23TOC%20%7B%0Aclear%3A%20both%3B%0Amargin%3A%200%200%2010px%2010px%3B%0Apadding%3A%204px%3B%0Awidth%3A%20400px%3B%0Aborder%3A%201px%20solid%20%23CCCCCC%3B%0Aborder%2Dradius%3A%205px%3B%0Abackground%2Dcolor%3A%20%23f6f6f6%3B%0Afont%2Dsize%3A%2013px%3B%0Aline%2Dheight%3A%201%2E3%3B%0A%7D%0A%23TOC%20%2Etoctitle%20%7B%0Afont%2Dweight%3A%20bold%3B%0Afont%2Dsize%3A%2015px%3B%0Amargin%2Dleft%3A%205px%3B%0A%7D%0A%23TOC%20ul%20%7B%0Apadding%2Dleft%3A%2040px%3B%0Amargin%2Dleft%3A%20%2D1%2E5em%3B%0Amargin%2Dtop%3A%205px%3B%0Amargin%2Dbottom%3A%205px%3B%0A%7D%0A%23TOC%20ul%20ul%20%7B%0Amargin%2Dleft%3A%20%2D2em%3B%0A%7D%0A%23TOC%20li%20%7B%0Aline%2Dheight%3A%2016px%3B%0A%7D%0Atable%20%7B%0Amargin%3A%201em%20auto%3B%0Aborder%2Dwidth%3A%201px%3B%0Aborder%2Dcolor%3A%20%23DDDDDD%3B%0Aborder%2Dstyle%3A%20outset%3B%0Aborder%2Dcollapse%3A%20collapse%3B%0A%7D%0Atable%20th%20%7B%0Aborder%2Dwidth%3A%202px%3B%0Apadding%3A%205px%3B%0Aborder%2Dstyle%3A%20inset%3B%0A%7D%0Atable%20td%20%7B%0Aborder%2Dwidth%3A%201px%3B%0Aborder%2Dstyle%3A%20inset%3B%0Aline%2Dheight%3A%2018px%3B%0Apadding%3A%205px%205px%3B%0A%7D%0Atable%2C%20table%20th%2C%20table%20td%20%7B%0Aborder%2Dleft%2Dstyle%3A%20none%3B%0Aborder%2Dright%2Dstyle%3A%20none%3B%0A%7D%0Atable%20thead%2C%20table%20tr%2Eeven%20%7B%0Abackground%2Dcolor%3A%20%23f7f7f7%3B%0A%7D%0Ap%20%7B%0Amargin%3A%200%2E5em%200%3B%0A%7D%0Ablockquote%20%7B%0Abackground%2Dcolor%3A%20%23f6f6f6%3B%0Apadding%3A%200%2E25em%200%2E75em%3B%0A%7D%0Ahr%20%7B%0Aborder%2Dstyle%3A%20solid%3B%0Aborder%3A%20none%3B%0Aborder%2Dtop%3A%201px%20solid%20%23777%3B%0Amargin%3A%2028px%200%3B%0A%7D%0Adl%20%7B%0Amargin%2Dleft%3A%200%3B%0A%7D%0Adl%20dd%20%7B%0Amargin%2Dbottom%3A%2013px%3B%0Amargin%2Dleft%3A%2013px%3B%0A%7D%0Adl%20dt%20%7B%0Afont%2Dweight%3A%20bold%3B%0A%7D%0Aul%20%7B%0Amargin%2Dtop%3A%200%3B%0A%7D%0Aul%20li%20%7B%0Alist%2Dstyle%3A%20circle%20outside%3B%0A%7D%0Aul%20ul%20%7B%0Amargin%2Dbottom%3A%200%3B%0A%7D%0Apre%2C%20code%20%7B%0Abackground%2Dcolor%3A%20%23f7f7f7%3B%0Aborder%2Dradius%3A%203px%3B%0Acolor%3A%20%23333%3B%0Awhite%2Dspace%3A%20pre%2Dwrap%3B%20%0A%7D%0Apre%20%7B%0Aborder%2Dradius%3A%203px%3B%0Amargin%3A%205px%200px%2010px%200px%3B%0Apadding%3A%2010px%3B%0A%7D%0Apre%3Anot%28%5Bclass%5D%29%20%7B%0Abackground%2Dcolor%3A%20%23f7f7f7%3B%0A%7D%0Acode%20%7B%0Afont%2Dfamily%3A%20Consolas%2C%20Monaco%2C%20%27Courier%20New%27%2C%20monospace%3B%0Afont%2Dsize%3A%2085%25%3B%0A%7D%0Ap%20%3E%20code%2C%20li%20%3E%20code%20%7B%0Apadding%3A%202px%200px%3B%0A%7D%0Adiv%2Efigure%20%7B%0Atext%2Dalign%3A%20center%3B%0A%7D%0Aimg%20%7B%0Abackground%2Dcolor%3A%20%23FFFFFF%3B%0Apadding%3A%202px%3B%0Aborder%3A%201px%20solid%20%23DDDDDD%3B%0Aborder%2Dradius%3A%203px%3B%0Aborder%3A%201px%20solid%20%23CCCCCC%3B%0Amargin%3A%200%205px%3B%0A%7D%0Ah1%20%7B%0Amargin%2Dtop%3A%200%3B%0Afont%2Dsize%3A%2035px%3B%0Aline%2Dheight%3A%2040px%3B%0A%7D%0Ah2%20%7B%0Aborder%2Dbottom%3A%204px%20solid%20%23f7f7f7%3B%0Apadding%2Dtop%3A%2010px%3B%0Apadding%2Dbottom%3A%202px%3B%0Afont%2Dsize%3A%20145%25%3B%0A%7D%0Ah3%20%7B%0Aborder%2Dbottom%3A%202px%20solid%20%23f7f7f7%3B%0Apadding%2Dtop%3A%2010px%3B%0Afont%2Dsize%3A%20120%25%3B%0A%7D%0Ah4%20%7B%0Aborder%2Dbottom%3A%201px%20solid%20%23f7f7f7%3B%0Amargin%2Dleft%3A%208px%3B%0Afont%2Dsize%3A%20105%25%3B%0A%7D%0Ah5%2C%20h6%20%7B%0Aborder%2Dbottom%3A%201px%20solid%20%23ccc%3B%0Afont%2Dsize%3A%20105%25%3B%0A%7D%0Aa%20%7B%0Acolor%3A%20%230033dd%3B%0Atext%2Ddecoration%3A%20none%3B%0A%7D%0Aa%3Ahover%20%7B%0Acolor%3A%20%236666ff%3B%20%7D%0Aa%3Avisited%20%7B%0Acolor%3A%20%23800080%3B%20%7D%0Aa%3Avisited%3Ahover%20%7B%0Acolor%3A%20%23BB00BB%3B%20%7D%0Aa%5Bhref%5E%3D%22http%3A%22%5D%20%7B%0Atext%2Ddecoration%3A%20underline%3B%20%7D%0Aa%5Bhref%5E%3D%22https%3A%22%5D%20%7B%0Atext%2Ddecoration%3A%20underline%3B%20%7D%0A%0Acode%20%3E%20span%2Ekw%20%7B%20color%3A%20%23555%3B%20font%2Dweight%3A%20bold%3B%20%7D%20%0Acode%20%3E%20span%2Edt%20%7B%20color%3A%20%23902000%3B%20%7D%20%0Acode%20%3E%20span%2Edv%20%7B%20color%3A%20%2340a070%3B%20%7D%20%0Acode%20%3E%20span%2Ebn%20%7B%20color%3A%20%23d14%3B%20%7D%20%0Acode%20%3E%20span%2Efl%20%7B%20color%3A%20%23d14%3B%20%7D%20%0Acode%20%3E%20span%2Ech%20%7B%20color%3A%20%23d14%3B%20%7D%20%0Acode%20%3E%20span%2Est%20%7B%20color%3A%20%23d14%3B%20%7D%20%0Acode%20%3E%20span%2Eco%20%7B%20color%3A%20%23888888%3B%20font%2Dstyle%3A%20italic%3B%20%7D%20%0Acode%20%3E%20span%2Eot%20%7B%20color%3A%20%23007020%3B%20%7D%20%0Acode%20%3E%20span%2Eal%20%7B%20color%3A%20%23ff0000%3B%20font%2Dweight%3A%20bold%3B%20%7D%20%0Acode%20%3E%20span%2Efu%20%7B%20color%3A%20%23900%3B%20font%2Dweight%3A%20bold%3B%20%7D%20%20code%20%3E%20span%2Eer%20%7B%20color%3A%20%23a61717%3B%20background%2Dcolor%3A%20%23e3d2d2%3B%20%7D%20%0A" rel="stylesheet" type="text/css" />
+
+</head>
+
+<body>
+
+
+
+
+<h1 class="title toc-ignore">scheduler: make operation center schedules w.r.t requirements and constraints.</h1>
+<h4 class="author"><em>Guang Yang</em></h4>
+<h4 class="date"><em>2016-08-01</em></h4>
+
+
+
+<div id="scheduler" class="section level2">
+<h2>scheduler</h2>
+<p><code>scheduler</code> is designed to fulfill scheduling process in operations, such as customer service center or warehouse fulfillment center, where the requirement are often the number of agents needed at each hour day, and the constraint are often the availability of each agent at each hour day.</p>
+<p>Welcome to a <a href="https://gyang.shinyapps.io/scheduler/">scheduler app on shinyapp.io</a>.</p>
+</div>
+<div id="an-example" class="section level2">
+<h2>An Example</h2>
+<p>The package associated data <code>agent_requirement</code> demonstrates a input data format for <code>scheduler</code> - a matrix of 48 half hour window by 7 days. These are the number of agents required at each half hour window at each day.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co">#- load scheduler package</span>
+<span class="kw">library</span>(scheduler)
+
+<span class="co">#- attach data in package</span>
+<span class="kw">data</span>(<span class="st">&quot;agent_requirement&quot;</span>)
+
+knitr::<span class="kw">kable</span>(agent_requirement)</code></pre></div>
+<table>
+<thead>
+<tr class="header">
+<th></th>
+<th align="right">Sunday</th>
+<th align="right">Monday</th>
+<th align="right">Tuesday</th>
+<th align="right">Wednesday</th>
+<th align="right">Thursday</th>
+<th align="right">Friday</th>
+<th align="right">Saturday</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>00:00</td>
+<td align="right">11</td>
+<td align="right">18</td>
+<td align="right">20</td>
+<td align="right">23</td>
+<td align="right">20</td>
+<td align="right">21</td>
+<td align="right">13</td>
+</tr>
+<tr class="even">
+<td>00:30</td>
+<td align="right">12</td>
+<td align="right">19</td>
+<td align="right">20</td>
+<td align="right">24</td>
+<td align="right">22</td>
+<td align="right">21</td>
+<td align="right">13</td>
+</tr>
+<tr class="odd">
+<td>01:00</td>
+<td align="right">10</td>
+<td align="right">16</td>
+<td align="right">16</td>
+<td align="right">20</td>
+<td align="right">19</td>
+<td align="right">17</td>
+<td align="right">14</td>
+</tr>
+<tr class="even">
+<td>01:30</td>
+<td align="right">9</td>
+<td align="right">16</td>
+<td align="right">17</td>
+<td align="right">19</td>
+<td align="right">17</td>
+<td align="right">17</td>
+<td align="right">14</td>
+</tr>
+<tr class="odd">
+<td>02:00</td>
+<td align="right">6</td>
+<td align="right">10</td>
+<td align="right">8</td>
+<td align="right">11</td>
+<td align="right">10</td>
+<td align="right">11</td>
+<td align="right">8</td>
+</tr>
+<tr class="even">
+<td>02:30</td>
+<td align="right">6</td>
+<td align="right">11</td>
+<td align="right">10</td>
+<td align="right">11</td>
+<td align="right">12</td>
+<td align="right">9</td>
+<td align="right">5</td>
+</tr>
+<tr class="odd">
+<td>03:00</td>
+<td align="right">6</td>
+<td align="right">8</td>
+<td align="right">12</td>
+<td align="right">13</td>
+<td align="right">12</td>
+<td align="right">10</td>
+<td align="right">7</td>
+</tr>
+<tr class="even">
+<td>03:30</td>
+<td align="right">4</td>
+<td align="right">9</td>
+<td align="right">10</td>
+<td align="right">12</td>
+<td align="right">9</td>
+<td align="right">10</td>
+<td align="right">7</td>
+</tr>
+<tr class="odd">
+<td>04:00</td>
+<td align="right">8</td>
+<td align="right">13</td>
+<td align="right">12</td>
+<td align="right">13</td>
+<td align="right">13</td>
+<td align="right">14</td>
+<td align="right">9</td>
+</tr>
+<tr class="even">
+<td>04:30</td>
+<td align="right">5</td>
+<td align="right">14</td>
+<td align="right">14</td>
+<td align="right">13</td>
+<td align="right">16</td>
+<td align="right">12</td>
+<td align="right">9</td>
+</tr>
+<tr class="odd">
+<td>05:00</td>
+<td align="right">11</td>
+<td align="right">22</td>
+<td align="right">22</td>
+<td align="right">27</td>
+<td align="right">23</td>
+<td align="right">21</td>
+<td align="right">15</td>
+</tr>
+<tr class="even">
+<td>05:30</td>
+<td align="right">11</td>
+<td align="right">20</td>
+<td align="right">20</td>
+<td align="right">24</td>
+<td align="right">23</td>
+<td align="right">22</td>
+<td align="right">14</td>
+</tr>
+<tr class="odd">
+<td>06:00</td>
+<td align="right">18</td>
+<td align="right">37</td>
+<td align="right">36</td>
+<td align="right">41</td>
+<td align="right">43</td>
+<td align="right">37</td>
+<td align="right">28</td>
+</tr>
+<tr class="even">
+<td>06:30</td>
+<td align="right">19</td>
+<td align="right">35</td>
+<td align="right">38</td>
+<td align="right">43</td>
+<td align="right">40</td>
+<td align="right">37</td>
+<td align="right">27</td>
+</tr>
+<tr class="odd">
+<td>07:00</td>
+<td align="right">27</td>
+<td align="right">57</td>
+<td align="right">58</td>
+<td align="right">67</td>
+<td align="right">69</td>
+<td align="right">61</td>
+<td align="right">42</td>
+</tr>
+<tr class="even">
+<td>07:30</td>
+<td align="right">29</td>
+<td align="right">58</td>
+<td align="right">57</td>
+<td align="right">67</td>
+<td align="right">68</td>
+<td align="right">61</td>
+<td align="right">44</td>
+</tr>
+<tr class="odd">
+<td>08:00</td>
+<td align="right">38</td>
+<td align="right">78</td>
+<td align="right">81</td>
+<td align="right">93</td>
+<td align="right">91</td>
+<td align="right">83</td>
+<td align="right">57</td>
+</tr>
+<tr class="even">
+<td>08:30</td>
+<td align="right">35</td>
+<td align="right">77</td>
+<td align="right">78</td>
+<td align="right">94</td>
+<td align="right">90</td>
+<td align="right">81</td>
+<td align="right">60</td>
+</tr>
+<tr class="odd">
+<td>09:00</td>
+<td align="right">45</td>
+<td align="right">97</td>
+<td align="right">100</td>
+<td align="right">114</td>
+<td align="right">115</td>
+<td align="right">100</td>
+<td align="right">69</td>
+</tr>
+<tr class="even">
+<td>09:30</td>
+<td align="right">43</td>
+<td align="right">99</td>
+<td align="right">97</td>
+<td align="right">114</td>
+<td align="right">112</td>
+<td align="right">103</td>
+<td align="right">72</td>
+</tr>
+<tr class="odd">
+<td>10:00</td>
+<td align="right">38</td>
+<td align="right">89</td>
+<td align="right">92</td>
+<td align="right">102</td>
+<td align="right">101</td>
+<td align="right">93</td>
+<td align="right">64</td>
+</tr>
+<tr class="even">
+<td>10:30</td>
+<td align="right">39</td>
+<td align="right">89</td>
+<td align="right">90</td>
+<td align="right">102</td>
+<td align="right">104</td>
+<td align="right">92</td>
+<td align="right">64</td>
+</tr>
+<tr class="odd">
+<td>11:00</td>
+<td align="right">43</td>
+<td align="right">94</td>
+<td align="right">98</td>
+<td align="right">111</td>
+<td align="right">108</td>
+<td align="right">101</td>
+<td align="right">68</td>
+</tr>
+<tr class="even">
+<td>11:30</td>
+<td align="right">42</td>
+<td align="right">95</td>
+<td align="right">96</td>
+<td align="right">111</td>
+<td align="right">108</td>
+<td align="right">100</td>
+<td align="right">68</td>
+</tr>
+<tr class="odd">
+<td>12:00</td>
+<td align="right">44</td>
+<td align="right">92</td>
+<td align="right">97</td>
+<td align="right">111</td>
+<td align="right">110</td>
+<td align="right">101</td>
+<td align="right">67</td>
+</tr>
+<tr class="even">
+<td>12:30</td>
+<td align="right">43</td>
+<td align="right">92</td>
+<td align="right">94</td>
+<td align="right">110</td>
+<td align="right">110</td>
+<td align="right">98</td>
+<td align="right">69</td>
+</tr>
+<tr class="odd">
+<td>13:00</td>
+<td align="right">38</td>
+<td align="right">88</td>
+<td align="right">91</td>
+<td align="right">101</td>
+<td align="right">100</td>
+<td align="right">91</td>
+<td align="right">64</td>
+</tr>
+<tr class="even">
+<td>13:30</td>
+<td align="right">39</td>
+<td align="right">87</td>
+<td align="right">88</td>
+<td align="right">101</td>
+<td align="right">100</td>
+<td align="right">90</td>
+<td align="right">64</td>
+</tr>
+<tr class="odd">
+<td>14:00</td>
+<td align="right">48</td>
+<td align="right">104</td>
+<td align="right">109</td>
+<td align="right">124</td>
+<td align="right">124</td>
+<td align="right">111</td>
+<td align="right">76</td>
+</tr>
+<tr class="even">
+<td>14:30</td>
+<td align="right">48</td>
+<td align="right">107</td>
+<td align="right">109</td>
+<td align="right">127</td>
+<td align="right">121</td>
+<td align="right">110</td>
+<td align="right">76</td>
+</tr>
+<tr class="odd">
+<td>15:00</td>
+<td align="right">39</td>
+<td align="right">78</td>
+<td align="right">85</td>
+<td align="right">95</td>
+<td align="right">92</td>
+<td align="right">84</td>
+<td align="right">61</td>
+</tr>
+<tr class="even">
+<td>15:30</td>
+<td align="right">36</td>
+<td align="right">79</td>
+<td align="right">82</td>
+<td align="right">96</td>
+<td align="right">92</td>
+<td align="right">85</td>
+<td align="right">59</td>
+</tr>
+<tr class="odd">
+<td>16:00</td>
+<td align="right">34</td>
+<td align="right">75</td>
+<td align="right">74</td>
+<td align="right">89</td>
+<td align="right">84</td>
+<td align="right">79</td>
+<td align="right">53</td>
+</tr>
+<tr class="even">
+<td>16:30</td>
+<td align="right">36</td>
+<td align="right">72</td>
+<td align="right">77</td>
+<td align="right">89</td>
+<td align="right">87</td>
+<td align="right">76</td>
+<td align="right">55</td>
+</tr>
+<tr class="odd">
+<td>17:00</td>
+<td align="right">30</td>
+<td align="right">63</td>
+<td align="right">61</td>
+<td align="right">75</td>
+<td align="right">70</td>
+<td align="right">67</td>
+<td align="right">44</td>
+</tr>
+<tr class="even">
+<td>17:30</td>
+<td align="right">27</td>
+<td align="right">63</td>
+<td align="right">61</td>
+<td align="right">75</td>
+<td align="right">73</td>
+<td align="right">66</td>
+<td align="right">46</td>
+</tr>
+<tr class="odd">
+<td>18:00</td>
+<td align="right">30</td>
+<td align="right">63</td>
+<td align="right">63</td>
+<td align="right">72</td>
+<td align="right">70</td>
+<td align="right">64</td>
+<td align="right">44</td>
+</tr>
+<tr class="even">
+<td>18:30</td>
+<td align="right">29</td>
+<td align="right">62</td>
+<td align="right">63</td>
+<td align="right">72</td>
+<td align="right">69</td>
+<td align="right">62</td>
+<td align="right">44</td>
+</tr>
+<tr class="odd">
+<td>19:00</td>
+<td align="right">24</td>
+<td align="right">53</td>
+<td align="right">54</td>
+<td align="right">61</td>
+<td align="right">62</td>
+<td align="right">56</td>
+<td align="right">36</td>
+</tr>
+<tr class="even">
+<td>19:30</td>
+<td align="right">22</td>
+<td align="right">50</td>
+<td align="right">52</td>
+<td align="right">63</td>
+<td align="right">59</td>
+<td align="right">54</td>
+<td align="right">36</td>
+</tr>
+<tr class="odd">
+<td>20:00</td>
+<td align="right">20</td>
+<td align="right">46</td>
+<td align="right">48</td>
+<td align="right">53</td>
+<td align="right">55</td>
+<td align="right">46</td>
+<td align="right">35</td>
+</tr>
+<tr class="even">
+<td>20:30</td>
+<td align="right">23</td>
+<td align="right">47</td>
+<td align="right">45</td>
+<td align="right">53</td>
+<td align="right">54</td>
+<td align="right">46</td>
+<td align="right">34</td>
+</tr>
+<tr class="odd">
+<td>21:00</td>
+<td align="right">20</td>
+<td align="right">39</td>
+<td align="right">43</td>
+<td align="right">47</td>
+<td align="right">47</td>
+<td align="right">42</td>
+<td align="right">29</td>
+</tr>
+<tr class="even">
+<td>21:30</td>
+<td align="right">18</td>
+<td align="right">40</td>
+<td align="right">41</td>
+<td align="right">46</td>
+<td align="right">47</td>
+<td align="right">42</td>
+<td align="right">28</td>
+</tr>
+<tr class="odd">
+<td>22:00</td>
+<td align="right">16</td>
+<td align="right">32</td>
+<td align="right">34</td>
+<td align="right">38</td>
+<td align="right">38</td>
+<td align="right">33</td>
+<td align="right">24</td>
+</tr>
+<tr class="even">
+<td>22:30</td>
+<td align="right">15</td>
+<td align="right">35</td>
+<td align="right">32</td>
+<td align="right">38</td>
+<td align="right">39</td>
+<td align="right">34</td>
+<td align="right">25</td>
+</tr>
+<tr class="odd">
+<td>23:00</td>
+<td align="right">14</td>
+<td align="right">26</td>
+<td align="right">25</td>
+<td align="right">31</td>
+<td align="right">28</td>
+<td align="right">28</td>
+<td align="right">20</td>
+</tr>
+<tr class="even">
+<td>23:30</td>
+<td align="right">15</td>
+<td align="right">27</td>
+<td align="right">26</td>
+<td align="right">31</td>
+<td align="right">30</td>
+<td align="right">28</td>
+<td align="right">21</td>
+</tr>
+</tbody>
+</table>
+<p>The package associated also a visualization function for viewing the requirement:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co">#- visualize the requirement</span>
+scheduler::<span class="kw">schedule_viewer1</span>(<span class="dt">m =</span> agent_requirement, <span class="dt">element_text_size =</span> 4L)</code></pre></div>
+<div class="figure" style="text-align: center">
+<img src="data:image/png;base64,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" alt="scheduler - visulation" width="100%" />
+<p class="caption">
+scheduler - visulation
+</p>
+</div>
+<p>The <code>scheduler</code> function takes <code>ar (agent_requirement)</code> as requirement, and makes shedules based on <code>sm (schedule module)</code> and <code>cr (constraints)</code> as constraints.</p>
+<p>There are 3 built in <code>sm (schedule module)</code>:</p>
+<ul>
+<li><p>All agents are assumed to work consecutive 5 days given a start day, e.g., when start at Thursday, agent will work on Thursday, Friday, Saturday, Sunday, Monday, and take rest on Tuesday and Wednsday.</p></li>
+<li><p>In schedule module 1: agent will start an half hour window, say 08:30AM, work 3.5 hour, take 0.5 hour break, and work another 4.5 hour.</p></li>
+<li><p>In schedule module 2: agent will start an half hour window, say 08:30AM, work 4.0 hour, take 0.5 hour break, and work another 4.0 hour.</p></li>
+<li><p>In schedule module 3: agent will start an half hour window, say 08:30AM, work 4.5 hour, take 0.5 hour break, and work another 3.5 hour.</p></li>
+<li><p>As a result, if an agent is scheduled in schedule module 1, with a start time at 08:30AM Tuesday, then he or she will work from Tuesday 08:30AM - 12:00PM, take rest 12:00PM - 12:30PM, and back to work 12:30PM - 17:00PM, and same on Wednesday, Thursday, Friday, and Saturday. He or she will take rest on Sunday, and Monday.</p></li>
+<li><p>Similarly, if an agent is scheduled in schedule module 2, with a start time at 14:00PM Wednesday, then he or she will work from Wednesday 14:00PM - 18:00PM, take rest 18:00PM - 18:30PM, and back to work 18:30PM - 22:30PM, and same on Thursday, Friday, Saturday, Sunday. He or she will take rest on Monday, and Tuesday.</p></li>
+</ul>
+<p>The argument <code>cr (constraints)</code> takes half-hour index as contraints that should remove from start time.</p>
+<p>The half-hour index start with 1L represents 00:00AM-00:30AM half-hour window on Sunday, 2L represents 00:30AM-01:00AM half-hour window on Sunday, …, 48L represents 23:30AM-00:00AM half-hour window on Sunday, 49L represents 00:00AM-00:30AM half-hour window on Monday, …, and up to 336L represents 23:30AM-00:00AM half-hour window on Saturday.</p>
+<p>By default, <code>cr = c(3L:12L, 51L:60L, 99L:108L, 147L:156L, 195L:204L, 243L-252L, 291L:300L)</code>. This implies no agent would start at 01:00AM - 05:30AM on any day.</p>
+<p>There is another argument <code>allow.half.hour.start</code> that can be used to specify whether allowing none whole hour start time. By default, <code>allow.half.hour.start</code> is <code>TRUE</code>, so start at 7:00AM and start at 7:30AM are two schedule. If <code>allow.half.hour.start</code> is set to <code>FALSE</code>, then no agent will start at 00:30AM, 01:30AM, …, 23:30AM on any day. This is a short cut for sepecifying all corresponding contraints with <code>cr</code>.</p>
+<p>Suppose we want a schedule that can use all 3 schedule modules with default constraints that no one start between 01:00AM - 05:30AM on any day.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co">#- suppose we want a schedule with default setting</span>
+(ss_list_01 &lt;-<span class="st"> </span><span class="kw">scheduler</span>(<span class="dt">ar =</span> agent_requirement, <span class="dt">sm =</span> <span class="kw">c</span>(1L, 2L, 3L)))</code></pre></div>
+<pre><code>## $s1
+##       Sunday Monday Tuesday Wednesday Thursday Friday Saturday
+## 00:00      0      8       2         1        1      0        2
+## 00:30      1      0       0         0        0      0        0
+## 01:00      0      0       0         0        0      0        0
+## 01:30      0      0       0         0        0      0        0
+## 02:00      0      0       0         0        0      0        0
+## 02:30      0      0       0         0        0      0        0
+## 03:00      0      0       0         0        0      0        0
+## 03:30      0      0       0         0        0      0        0
+## 04:00      0      0       0         0        0      0        0
+## 04:30      0      0       0         0        0      0        0
+## 05:00      0      0       0         0        0      0        0
+## 05:30      0      0       0         0        0      0        0
+## 06:00      0      0       0         0        1      0        0
+## 06:30      0      5       3         1        0      0        3
+## 07:00      1      1       2         0        0      0        0
+## 07:30      6      0       2         0        0      0        0
+## 08:00      2      0       2         0        0      0        0
+## 08:30      0      9       2         0        1      0        2
+## 09:00      3      2       3         1        0      0        1
+## 09:30      0      2       0         1        0      0        0
+## 10:00      0      0       0         0        1      0        0
+## 10:30      1      1       0         2        2      0        0
+## 11:00      0      1       0         0        0      0        0
+## 11:30      0      0       0         0        0      0        0
+## 12:00      1      2       0         0        0      0        2
+## 12:30      0      0       1         2        0      0        0
+## 13:00      0      2       0         0        0      0        2
+## 13:30      2     13       7         0        0      0        0
+## 14:00      0      0       0         0        1      0        1
+## 14:30      0      0       0         0        0      0        0
+## 15:00      0      0       0         0        0      0        0
+## 15:30      0      1       1         0        0      0        0
+## 16:00      1      0       0         0        3      1        0
+## 16:30      1      2       5         0        0      0        0
+## 17:00      1      3       0         0        0      0        0
+## 17:30      0      0       1         0        0      0        1
+## 18:00      0      0       0         0        0      0        0
+## 18:30      0      0       0         0        0      0        0
+## 19:00      0      0       0         0        0      0        0
+## 19:30      0      0       0         0        0      0        0
+## 20:00      0      0       0         0        0      0        0
+## 20:30      0      0       0         0        0      0        0
+## 21:00      0      0       0         0        0      0        0
+## 21:30      1      1       0         0        0      0        0
+## 22:00      0      2       1         0        0      0        0
+## 22:30      4      0       0         0        0      0        0
+## 23:00      0      0       0         0        0      2        0
+## 23:30      0      0       0         0        0      0        0
+## 
+## $s2
+##       Sunday Monday Tuesday Wednesday Thursday Friday Saturday
+## 00:00      0      0       0         0        1      0        0
+## 00:30      0      0       0         0        0      0        2
+## 01:00      0      0       0         0        0      0        0
+## 01:30      0      0       0         0        0      0        0
+## 02:00      0      0       0         0        0      0        0
+## 02:30      0      0       0         0        0      0        0
+## 03:00      0      0       0         0        0      0        0
+## 03:30      0      0       0         0        0      0        0
+## 04:00      0      0       0         0        0      0        0
+## 04:30      0      0       0         0        0      0        0
+## 05:00      0      0       0         0        0      0        0
+## 05:30      0      0       0         0        0      0        0
+## 06:00      0      1       2         0        1      0        0
+## 06:30      0      0       0         0        0      0        0
+## 07:00      0      1       4         0        4      0        0
+## 07:30      0      0       0         0        0      0        0
+## 08:00      0      1       0         0        1      0        4
+## 08:30      0      0       0         0        0      0        0
+## 09:00      0     11       2         0        2      0        0
+## 09:30      0      0       0         0        0      0        2
+## 10:00      0      0       0         0        0      0        0
+## 10:30      0      0       0         0        0      0        0
+## 11:00      0      0       0         0        0      0        0
+## 11:30      0      0       0         0        0      0        0
+## 12:00      0      0       0         0        0      0        0
+## 12:30      0      0       0         0        0      0        0
+## 13:00      0      0       0         0        0      0        0
+## 13:30      0      0       0         0        0      0        0
+## 14:00      0      0       0         0        0      0        0
+## 14:30      0      0       0         0        0      0        0
+## 15:00      0      0       0         0        0      0        0
+## 15:30      0      0       0         0        0      0        0
+## 16:00      0      0       0         0        0      0        0
+## 16:30      0      0       0         1        1      0        0
+## 17:00      0      0       0         0        0      0        0
+## 17:30      0      0       1         0        0      0        0
+## 18:00      0      0       0         0        0      0        0
+## 18:30      0      0       0         0        0      0        0
+## 19:00      0      0       0         0        0      0        0
+## 19:30      0      0       0         0        0      0        0
+## 20:00      0      0       0         0        0      0        0
+## 20:30      0      0       0         0        0      0        0
+## 21:00      0      0       0         0        0      0        0
+## 21:30      0      0       0         0        0      0        0
+## 22:00      0      0       0         0        0      0        0
+## 22:30      0      0       0         0        0      0        0
+## 23:00      0      0       0         0        0      0        0
+## 23:30      0      0       0         0        0      0        0
+## 
+## $s3
+##       Sunday Monday Tuesday Wednesday Thursday Friday Saturday
+## 00:00      0      0       0         0        0      0        0
+## 00:30      0      0       0         0        0      0        0
+## 01:00      0      0       0         0        0      0        0
+## 01:30      0      0       0         0        0      0        0
+## 02:00      0      0       0         0        0      0        0
+## 02:30      0      0       0         0        0      0        0
+## 03:00      0      0       0         0        0      0        0
+## 03:30      0      0       0         0        0      0        0
+## 04:00      0      0       0         0        0      0        0
+## 04:30      0      0       0         0        0      0        0
+## 05:00      0      0       0         0        0      0        0
+## 05:30      0      0       0         0        0      0        0
+## 06:00      0      8       0         5        4      0        3
+## 06:30      0      0       0         0        0      0        0
+## 07:00      0      7       2         0        2      0        0
+## 07:30      0      0       0         0        0      0        0
+## 08:00      0      4       4         0        2      0        3
+## 08:30      0      0       0         0        0      0        1
+## 09:00      0      0       0         0        0      0        0
+## 09:30      0      0       0         0        0      0        0
+## 10:00      0      0       0         0        0      0        0
+## 10:30      0      0       0         0        0      0        0
+## 11:00      0      0       0         0        0      0        0
+## 11:30      0      0       0         0        0      0        0
+## 12:00      0      0       0         0        0      0        0
+## 12:30      0      0       0         0        0      0        0
+## 13:00      0      0       0         0        0      0        0
+## 13:30      0      0       0         0        0      0        0
+## 14:00      0      0       0         0        0      0        0
+## 14:30      0      0       0         0        0      0        3
+## 15:00      0      0       0         0        0      0        0
+## 15:30      0      0       0         0        0      0        0
+## 16:00      0      0       0         0        0      0        0
+## 16:30      0      0       0         0        3      0        1
+## 17:00      0      7       0         0        0      0        2
+## 17:30      0      0       0         0        0      0        0
+## 18:00      0      0       0         0        0      0        0
+## 18:30      0      0       0         0        0      0        0
+## 19:00      0      0       0         0        0      0        0
+## 19:30      0      0       0         0        0      0        0
+## 20:00      0      0       0         0        0      0        0
+## 20:30      0      0       0         0        0      0        0
+## 21:00      0      0       0         0        0      0        0
+## 21:30      0      0       0         0        0      0        0
+## 22:00      0      0       0         0        0      0        0
+## 22:30      0      0       0         0        0      0        0
+## 23:00      0      0       0         0        0      0        0
+## 23:30      0      0       0         0        0      0        0
+## 
+## $ss
+##       Sunday Monday Tuesday Wednesday Thursday Friday Saturday
+## 00:00     28     35      49        51       49     52       41
+## 00:30     27     33      47        52       49     48       39
+## 01:00     16     25      37        41       37     33       26
+## 01:30     13     23      24        27       23     21       14
+## 02:00     11     18      21        23       19     18       15
+## 02:30      9     20      23        25       23     22       13
+## 03:00     11     22      25        27       23     22       15
+## 03:30      7     11      13        14       11     10        9
+## 04:00      9     20      24        26       21     21       14
+## 04:30      9     20      23        25       23     22       13
+## 05:00     11     22      25        27       23     22       15
+## 05:30     11     22      25        27       23     22       15
+## 06:00     25     39      37        44       43     42       30
+## 06:30     28     47      46        53       49     48       34
+## 07:00     35     59      60        67       69     67       48
+## 07:30     39     63      66        73       77     69       48
+## 08:00     51     80      86        93       93     83       64
+## 08:30     50     81      88        94       92     82       63
+## 09:00     54     97     107       114      115    103       70
+## 09:30     56    100     111       119      117    105       72
+## 10:00     53     92      97       104      106     94       64
+## 10:30     50     89      98       103      104     92       64
+## 11:00     53     96     101       111      109    102       68
+## 11:30     59     96     101       111      111    100       72
+## 12:00     58     94     101       111      115    101       70
+## 12:30     58     97     100       111      113    102       69
+## 13:00     66    100     108       119      116    102       79
+## 13:30     69    128     144       156      155    139       89
+## 14:00     69    129     145       155      151    136       90
+## 14:30     63    117     135       142      134    118       81
+## 15:00     59    110     125       131      126    110       74
+## 15:30     49     90     104       110      101     87       59
+## 16:00     49     94     102       105       97     88       60
+## 16:30     44     81      88        94       95     87       56
+## 17:00     43     70      69        75       74     67       47
+## 17:30     37     65      71        76       73     67       46
+## 18:00     36     63      68        72       71     65       45
+## 18:30     35     62      68        72       70     64       44
+## 19:00     27     54      61        63       62     57       36
+## 19:30     25     52      63        66       59     54       36
+## 20:00     29     54      57        59       55     51       35
+## 20:30     24     47      56        57       54     51       36
+## 21:00     20     47      56        56       53     49       29
+## 21:30     22     41      47        47       49     44       30
+## 22:00     22     37      38        38       38     35       27
+## 22:30     24     39      41        41       41     34       25
+## 23:00     23     38      40        38       41     36       24
+## 23:30     23     38      40        38       41     36       24
+## 
+## $scheduleOptModel
+## Model name: 
+##   a linear program with 1008 decision variables and 546 constraints</code></pre>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">## num of agent needed in total with this schedule
+<span class="kw">with</span>(ss_list_01, <span class="kw">sum</span>(s1 +<span class="st"> </span>s2 +<span class="st"> </span>s3))</code></pre></div>
+<pre><code>## [1] 250</code></pre>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">## a comparision on schedule and requirement side by side
+scheduler::<span class="kw">schedule_viewer2</span>(
+  <span class="dt">m1 =</span> agent_requirement, <span class="dt">m2 =</span> ss_list_01[[<span class="st">&quot;ss&quot;</span>]], 
+  <span class="dt">m1_label =</span> <span class="st">&quot;Agent Required&quot;</span>, <span class="dt">m2_label =</span> <span class="st">&quot;Agent Available&quot;</span>,
+  <span class="dt">element_text_size =</span> 4L
+)</code></pre></div>
+<p><img src="data:image/png;base64,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" /><!-- --></p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">## view of agent start time distribution on 3 schedule module side by side
+scheduler::<span class="kw">schedule_viewer3</span>(
+  <span class="dt">m1 =</span> ss_list_01[[<span class="st">&quot;s1&quot;</span>]], 
+  <span class="dt">m2 =</span> ss_list_01[[<span class="st">&quot;s2&quot;</span>]], 
+  <span class="dt">m3 =</span> ss_list_01[[<span class="st">&quot;s3&quot;</span>]],
+  <span class="dt">m1_label =</span> <span class="st">&quot;Schedule Module 1&quot;</span>,
+  <span class="dt">m2_label =</span> <span class="st">&quot;Schedule Module 2&quot;</span>,
+  <span class="dt">m3_label =</span> <span class="st">&quot;Schedule Module 3&quot;</span>,
+  <span class="dt">element_text_size =</span> 4L
+)</code></pre></div>
+<p><img src="data:image/png;base64,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" /><!-- --></p>
+<p>The output from <code>scheduler</code> is a list of 4 matrix <code>s1</code>, <code>s2</code>, <code>s3</code>, <code>ss</code> and a solved lp model <code>scheduleOptModel</code>.</p>
+<p>The matricies <code>s1</code>, <code>s2</code> and <code>s3</code> each is a 48 x 7 matrix of number of agents required to start at each half hour window each day. The matrix <code>s1</code>, <code>s2</code>, and <code>s3</code> are a coresponding to schedule module 1, schedule module 2, and schedule module 3, respectively. For example, <code>s1[14, 2] = 3</code> implies we need 3 agents to start at 6:30AM Monday with schedule module 1. Note that even when you specify <code>sm = c(2L, 3L)</code> when calling <code>scheduler</code>, it will still return all 3 matricies <code>s1</code>, <code>s2</code>, <code>s3</code>, only that <code>s1</code> would contains all zeros.</p>
+<p>The matrix <code>ss</code> is a 48 x 7 matrix, and is a summarize of s1, s2 and s3 to show the number of agents <strong>available (not start)</strong> at each half hour window. A quality solution should have <code>all(ss &gt; ar)</code> and <code>ss - ar ~ 0</code> in all cells.</p>
+<p>What if we want a schedule that can use schedule module 2L and 3L only, and does not all half-hour start, e.g., no agent start at 00:30AM, 01:30AM, …, 23:30AM on any day, in addition with default constraints that no one start between 01:00AM - 05:30AM on any day.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co">#- suppose we want a schedule allow shedule module 2L and 3L only, </span>
+## and disable half-hour start, more constraints - less effective.
+ss_list_02 &lt;-<span class="st"> </span><span class="kw">scheduler</span>(
+  <span class="dt">ar =</span> agent_requirement, <span class="dt">sm =</span> <span class="kw">c</span>(2L, 3L),
+  <span class="dt">allow.half.hour.start =</span> <span class="ot">FALSE</span>)
+
+## compare the num of total agent required by solution ss_list_02
+## with solution ss_list_01
+<span class="kw">with</span>(ss_list_02, <span class="kw">sum</span>(s1 +<span class="st"> </span>s2 +<span class="st"> </span>s3)) -<span class="st"> </span><span class="kw">with</span>(ss_list_01, <span class="kw">sum</span>(s1 +<span class="st"> </span>s2 +<span class="st"> </span>s3))</code></pre></div>
+<pre><code>## [1] 3</code></pre>
+<p>Intuitively, <code>ss_list_02</code> is searching the solution on a sub-space of the space where <code>ss_list_01</code> is searching the solution, so it will generally reach to a sub-optimal solution. In this case, <code>ss_list_02</code> is searching a schedule with 504 free parameters and 336 constraints, and is able to find solution with 253 agents needed in total, whereas <code>ss_list_01</code> is searching a schedule with 1008 free parameters and 336 constraints, and is able to find a relavtive better solution with 250 agents needed in total. However, it is important to note that in a problem with such many free parameters, expert knowledge is critical in formulating the problem and solution space for finding solutions that both practical and close to optimal.</p>
+</div>
+
+
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>
