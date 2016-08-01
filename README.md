@@ -324,7 +324,9 @@ Suppose we want a schedule that can use all 3 schedule modules with default cons
 ## num of agent needed in total with this schedule
 with(ss_list_01, sum(s1 + s2 + s3))
 #> [1] 250
+```
 
+``` r
 ## a comparision on schedule and requirement side by side
 scheduler::schedule_viewer2(
   m1 = agent_requirement, m2 = ss_list_01[["ss"]], 
@@ -333,10 +335,12 @@ scheduler::schedule_viewer2(
 )
 ```
 
-![](fig/unnamed-chunk-4-1.png)
+<img src="fig/unnamed-chunk-5-1.png" alt="scheduler - visulation" width="100%" />
+<p class="caption">
+scheduler - visulation
+</p>
 
 ``` r
-
 ## view of agent start time distribution on 3 schedule module side by side
 scheduler::schedule_viewer3(
   m1 = ss_list_01[["s1"]], 
@@ -349,7 +353,10 @@ scheduler::schedule_viewer3(
 )
 ```
 
-![](fig/unnamed-chunk-4-2.png)
+<img src="fig/unnamed-chunk-6-1.png" alt="scheduler - visulation" width="100%" />
+<p class="caption">
+scheduler - visulation
+</p>
 
 The output from `scheduler` is a list of 4 matrix `s1`, `s2`, `s3`, `ss` and a solved lp model `scheduleOptModel`.
 

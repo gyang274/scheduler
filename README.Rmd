@@ -73,14 +73,18 @@ Suppose we want a schedule that can use all 3 schedule modules with default cons
 
 ## num of agent needed in total with this schedule
 with(ss_list_01, sum(s1 + s2 + s3))
+```
 
+```{r, fig.align='center', fig.cap='scheduler - visulation', fig.show='hold', out.width='100%'}
 ## a comparision on schedule and requirement side by side
 scheduler::schedule_viewer2(
   m1 = agent_requirement, m2 = ss_list_01[["ss"]], 
   m1_label = "Agent Required", m2_label = "Agent Available",
   element_text_size = 4L
 )
+```
 
+```{r, fig.align='center', fig.cap='scheduler - visulation', fig.show='hold', out.width='100%'}
 ## view of agent start time distribution on 3 schedule module side by side
 scheduler::schedule_viewer3(
   m1 = ss_list_01[["s1"]], 
