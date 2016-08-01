@@ -11,13 +11,15 @@ vignette: >
 
 ## scheduler
 
-scheduler is designed to fulfill scheduling process in operations, such as customer service center or warehouse fulfillment center, where the requirement are often the number of agents needed at each hour day, and the constraint are often the availability of each agent at each hour day.
+`scheduler` is designed to fulfill scheduling process in operations, such as customer service center or warehouse fulfillment center, where the requirement are often the number of agents needed at each hour day, and the constraint are often the availability of each agent at each hour day.
+
+Welcome to a [scheduler app on shinyapp.io](https://gyang.shinyapps.io/scheduler/).
 
 ## An Example
 
 The package associated data `agent_requirement` demonstrates a input data format for `scheduler` - a matrix of 48 half hour window by 7 days. These are the number of agents required at each half hour window at each day.
 
-```{r, message=FALSE}
+```{r, warning=FALSE, message=FALSE}
 #- load scheduler package
 library(scheduler)
 
@@ -31,7 +33,7 @@ The package associated also a visualization function for viewing the requirement
 
 ```{r, fig.align='center', fig.cap='scheduler - visulation', fig.show='hold', out.width='100%'}
 #- visualize the requirement
-scheduler::plot_schedule(m = agent_requirement, element_text_size = 4L)
+scheduler::schedule_viewer1(m = agent_requirement, element_text_size = 4L)
 ```
 
 The `scheduler` function takes `ar (agent_requirement)` as requirement, and makes shedules based on `sm (schedule module)` and `cr (constraints)` as constraints. 
@@ -60,9 +62,30 @@ There is another argument `allow.half.hour.start` that can be used to specify wh
 
 Suppose we want a schedule that can use all 3 schedule modules with default constraints that no one start between 01:00AM - 05:30AM on any day.
 
-```{r, cache=TRUE, message=FALSE}
+```{r, cache=FALSE, message=FALSE}
 #- suppose we want a schedule with default setting
 (ss_list_01 <- scheduler(ar = agent_requirement, sm = c(1L, 2L, 3L)))
+
+## num of agent needed in total with this schedule
+with(ss_list_01, sum(s1 + s2 + s3))
+
+## a comparision on schedule and requirement side by side
+scheduler::schedule_viewer2(
+  m1 = agent_requirement, m2 = ss_list_01[["ss"]], 
+  m1_label = "Agent Required", m2_label = "Agent Available",
+  element_text_size = 4L
+)
+
+## view of agent start time distribution on 3 schedule module side by side
+scheduler::schedule_viewer3(
+  m1 = ss_list_01[["s1"]], 
+  m2 = ss_list_01[["s2"]], 
+  m3 = ss_list_01[["s3"]],
+  m1_label = "Schedule Module 1",
+  m2_label = "Schedule Module 2",
+  m3_label = "Schedule Module 3",
+  element_text_size = 4L
+)
 ```
 
 The output from `scheduler` is a list of 4 matrix `s1`, `s2`, `s3`, `ss` and a solved lp model `scheduleOptModel`.
@@ -73,17 +96,16 @@ The matrix `ss` is a 48 x 7 matrix, and is a summarize of s1, s2 and s3 to show 
 
 What if we want a schedule that can use schedule module 2L and 3L only, and does not all half-hour start, e.g., no agent start at 00:30AM, 01:30AM, ..., 23:30AM on any day, in addition with default constraints that no one start between 01:00AM - 05:30AM on any day.
 
-```{r, cache=TRUE, message=FALSE}
+```{r, cache=FALSE, message=FALSE}
 #- suppose we want a schedule allow shedule module 2L and 3L only, 
 ## and disable half-hour start, more constraints - less effective.
 ss_list_02 <- scheduler(
   ar = agent_requirement, sm = c(2L, 3L),
   allow.half.hour.start = FALSE)
 
-## compare the num of total agent required by solution ss_list_01 
-## and solution ss_list_02
-with(ss_list_01, sum(s1 + s2 + s3)) - with(ss_list_02, sum(s1 + s2 + s3))
+## compare the num of total agent required by solution ss_list_02
+## with solution ss_list_01
+with(ss_list_02, sum(s1 + s2 + s3)) - with(ss_list_01, sum(s1 + s2 + s3))
 ```
 
-Intuitively, `ss_list_02` is searching the solution on a sub-space of the space where `ss_list_01` is searching the solution, so it will generally reach to a sub-optimal solution. However, in this case, `ss_list_01` is searching a solution for 1008 free parameters with 336 constraints, and is trapped on a local optimal with 254 agents needed in total, whereas `ss_list_02` is searching a solution for 504 free parameters with 336 constraints, and is able to reach a relative better solution with 251 agents needed in total. This is an important note that in a problem with such many free parameters, expert knowledge is really critical in formulating the problem and solution space, and as a result reach to a practical and close to optimal solution.
-
+Intuitively, `ss_list_02` is searching the solution on a sub-space of the space where `ss_list_01` is searching the solution, so it will generally reach to a sub-optimal solution. In this case, `ss_list_02` is searching a schedule with 504 free parameters and 336 constraints, and is able to find solution with 253 agents needed in total, whereas `ss_list_01` is searching a schedule with 1008 free parameters and 336 constraints, and is able to find a relavtive better solution with 250 agents needed in total. However, it is important to note that in a problem with such many free parameters, expert knowledge is critical in formulating the problem and solution space for finding solutions that both practical and close to optimal.
