@@ -12,7 +12,7 @@ schedule_viewer3(m1, m2, m3, m1_label = "Schedule Module 1",
   element_text_size = 22L)
 }
 \arguments{
-\item{m1, }{m2, m3 - 48 x 7 matrices}
+\item{{m1, }{m2, m3} 48 x 7 matrices}
 }
 \value{
 a ggplot object that plot 48 half hour window each day for 7 day

@@ -7,7 +7,7 @@
 agentActiveHours(sm, j, i)
 }
 \arguments{
-\item{sm}{- schedule module - single value:
+\item{sm}{schedule module - single value:
 schedule module 1: agent start any half hour window, say 8:30AM,
   work 3.5 hour, take 0.5 hour break, and work another 4.5 hour.
 schedule module 2: agent start any half hour window, say 8:30AM,
@@ -15,9 +15,9 @@ schedule module 2: agent start any half hour window, say 8:30AM,
 schedule module 3: agent start any half hour window, say 8:30AM,
   work 4.5 hour, take 0.5 hour break, and work another 3.5 hour.}
 
-\item{j}{- start day j = 0L Sunday, 1L Monday, ..., or 6L Saturday.}
+\item{j}{start day j = 0L Sunday, 1L Monday, ..., or 6L Saturday.}
 
-\item{i}{- start hour i = 0L 00:00AM, 2L 00:30AM, ..., or 47L 11:30AM.}
+\item{i}{start hour i = 0L 00:00AM, 2L 00:30AM, ..., or 47L 11:30AM.}
 }
 \description{
 a subroutine in scheduler for calculating agent active hour given a starting

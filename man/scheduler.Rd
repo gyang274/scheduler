@@ -9,40 +9,50 @@ scheduler(ar, sm = c(1L, 2L, 3L), cr = c(3L:12L, 51L:60L, 99L:108L,
   write.model.into.file = NULL, timeout = 60L)
 }
 \arguments{
-\item{ar}{- agent requirement matrix
+\item{ar}{agent requirement matrix
 a 48 x 7 matrix to specifiy number of agents needed at each 0.5 hr each day}
 
-\item{sm}{- schedule module vector - allow 3 schedule modules:
-schedule module 1: agent start any half hour window, say 8:30AM,
-  work 3.5 hour, take 0.5 hour break, and work another 4.5 hour.
-schedule module 2: agent start any half hour window, say 8:30AM,
-  work 4.0 hour, take 0.5 hour break, and work another 4.0 hour.
-schedule module 3: agent start any half hour window, say 8:30AM,
-  work 4.5 hour, take 0.5 hour break, and work another 3.5 hour.
-all agents any schedule assume to work consecutive 5 days given a start day}
+\item{sm}{schedule module vector - allow 3 schedule modules:
 
-\item{cr}{- constraints on starting hours
-default is no agent will start work at 1:00AM, 1:30AM, ..., and 5:30AM
-on any day count 0:00AM as 1L and take a 0.5hr window so 1:00AM-5:30AM
-3L-12L, 51L-60L, 99L-108L, 147L-156L, 195L-204L, 243L-252L, 291L-300L.}
+ schedule module 1: agent start any half hour window, say 8:30AM,
+   work 3.5 hour, take 0.5 hour break, and work another 4.5 hour.
 
-\item{allow.half.hour.start}{- allow start at none whole hour?
-default is TRUE, so start at 7:00AM and start at 7:30AM are two schedule.
-if set FALSE, then no agent will start at 00:30AM, 01:30AM, ..., 23:30AM,
-this is a short cut for sepecifying all corresponding contraints with cr.}
+ schedule module 2: agent start any half hour window, say 8:30AM,
+   work 4.0 hour, take 0.5 hour break, and work another 4.0 hour.
 
-\item{write.model.into.file}{- write out lp model into a file?
-default is NULL not write out the model, otherwise a file name to write out}
+ schedule module 3: agent start any half hour window, say 8:30AM,
+   work 4.5 hour, take 0.5 hour break, and work another 3.5 hour.
 
-\item{timeout}{- number of seconds to timeout the solving process
-a parameter to pass into lpSolveAPI when solving the lp instance}
+ all agents any schedule assume to work consecutive 5 days given a start day}
+
+\item{cr}{constraints on starting hours
+
+ default is no agent will start work at 1:00AM, 1:30AM, ..., and 5:30AM
+ on any day count 0:00AM as 1L and take a 0.5hr window so 1:00AM-5:30AM
+ 3L-12L, 51L-60L, 99L-108L, 147L-156L, 195L-204L, 243L-252L, 291L-300L.}
+
+\item{allow.half.hour.start}{allow start at none whole hour?
+
+ default is TRUE, so start at 7:00AM and start at 7:30AM are two schedule.
+ if set FALSE, then no agent will start at 00:30AM, 01:30AM, ..., 23:30AM,
+ this is a short cut for sepecifying all corresponding contraints with cr.}
+
+\item{write.model.into.file}{write out lp model into a file?
+
+ default is NULL not write out the model, otherwise a file name to write out}
+
+\item{timeout}{number of seconds to timeout the solving process
+
+ a parameter to pass into lpSolveAPI when solving the lp instance}
 }
 \value{
 a list of 4 matrix and a solved lp model:
  s1, s2, s3, ss, and scheduleOptModel.
+
  s1, s2 and s3 each is a 48 x 7 matrix of number of agents required to
  start at each hour each day, and s1, s2, and s3 are a coresponding to
  schedule module 1, schedule module 2, and schedule module 3.
+
  ss is a 48 x 7 matrix and is a summarize of s1, s2 and s3 to show the
  number of agents avail at each half hour window - should all(ss > ar)
 }

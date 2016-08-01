@@ -11,39 +11,58 @@
 #------------------------------------------------------------------------------#
 
 #' scheduler
+#'
 #' @description
 #' scheduler is designed to fulfill scheduling process in the operation centers,
 #' where the requirement are often the number of agents needed at each hour day,
 #' and the constraint are often the availability of each agent at each hour day.
-#' @param ar - agent requirement matrix
+#'
+#' @param ar agent requirement matrix
 #'  a 48 x 7 matrix to specifiy number of agents needed at each 0.5 hr each day
-#' @param sm - schedule module vector - allow 3 schedule modules:
+#'
+#' @param sm schedule module vector - allow 3 schedule modules:
+#'
 #'  schedule module 1: agent start any half hour window, say 8:30AM,
 #'    work 3.5 hour, take 0.5 hour break, and work another 4.5 hour.
+#'
 #'  schedule module 2: agent start any half hour window, say 8:30AM,
 #'    work 4.0 hour, take 0.5 hour break, and work another 4.0 hour.
+#'
 #'  schedule module 3: agent start any half hour window, say 8:30AM,
 #'    work 4.5 hour, take 0.5 hour break, and work another 3.5 hour.
+#'
 #'  all agents any schedule assume to work consecutive 5 days given a start day
-#' @param cr - constraints on starting hours
+#'
+#' @param cr constraints on starting hours
+#'
 #'  default is no agent will start work at 1:00AM, 1:30AM, ..., and 5:30AM
 #'  on any day count 0:00AM as 1L and take a 0.5hr window so 1:00AM-5:30AM
 #'  3L-12L, 51L-60L, 99L-108L, 147L-156L, 195L-204L, 243L-252L, 291L-300L.
-#' @param allow.half.hour.start - allow start at none whole hour?
+#'
+#' @param allow.half.hour.start allow start at none whole hour?
+#'
 #'  default is TRUE, so start at 7:00AM and start at 7:30AM are two schedule.
 #'  if set FALSE, then no agent will start at 00:30AM, 01:30AM, ..., 23:30AM,
 #'  this is a short cut for sepecifying all corresponding contraints with cr.
-#' @param write.model.into.file - write out lp model into a file?
+#'
+#' @param write.model.into.file write out lp model into a file?
+#'
 #'  default is NULL not write out the model, otherwise a file name to write out
-#' @param timeout - number of seconds to timeout the solving process
+#'
+#' @param timeout number of seconds to timeout the solving process
+#'
 #'  a parameter to pass into lpSolveAPI when solving the lp instance
+#'
 #' @return a list of 4 matrix and a solved lp model:
 #'  s1, s2, s3, ss, and scheduleOptModel.
+#'
 #'  s1, s2 and s3 each is a 48 x 7 matrix of number of agents required to
 #'  start at each hour each day, and s1, s2, and s3 are a coresponding to
 #'  schedule module 1, schedule module 2, and schedule module 3.
+#'
 #'  ss is a 48 x 7 matrix and is a summarize of s1, s2 and s3 to show the
 #'  number of agents avail at each half hour window - should all(ss > ar)
+#'
 #' @family scheduler
 scheduler <- function(ar, sm = c(1L, 2L, 3L),
   cr = c(3L:12L, 51L:60L, 99L:108L, 147L:156L,
@@ -156,15 +175,15 @@ scheduler <- function(ar, sm = c(1L, 2L, 3L),
 #'  available at 07:30AM - 11:00AM and 11:30AM - 16:00PM Monday - Friday, so the
 #'  active half-hour indx would be 16-22, 24-32, 64-70, 72-80, 112-118, 120-128,
 #'  160-166, 168-176, 208-214 and 216-224.
-#' @param sm - schedule module - single value:
+#' @param sm schedule module - single value:
 #'  schedule module 1: agent start any half hour window, say 8:30AM,
 #'    work 3.5 hour, take 0.5 hour break, and work another 4.5 hour.
 #'  schedule module 2: agent start any half hour window, say 8:30AM,
 #'    work 4.0 hour, take 0.5 hour break, and work another 4.0 hour.
 #'  schedule module 3: agent start any half hour window, say 8:30AM,
 #'    work 4.5 hour, take 0.5 hour break, and work another 3.5 hour.
-#' @param j - start day j = 0L Sunday, 1L Monday, ..., or 6L Saturday.
-#' @param i - start hour i = 0L 00:00AM, 2L 00:30AM, ..., or 47L 11:30AM.
+#' @param j start day j = 0L Sunday, 1L Monday, ..., or 6L Saturday.
+#' @param i start hour i = 0L 00:00AM, 2L 00:30AM, ..., or 47L 11:30AM.
 #' @note
 #'  note that there is a slight inconsistency that i is 0 - 47 half hour index
 #'  and j is 0 - 6 day index, so the full half hour index produced should then
@@ -298,7 +317,7 @@ agentOnTimeFromSchedule <- function(ss_lst) {
 #' @description
 #'  a visualization funtion to show agent requirement or schedules from
 #'  48 x 7 matrix
-#' @param m - a 48 x 7 matrix
+#' @param m a 48 x 7 matrix
 #' @return a ggplot object that plot 48 half hour window each day for 7 day
 #' @family scheduler_viewer
 schedule_viewer <- function(
@@ -343,7 +362,7 @@ schedule_viewer <- function(
 #' @description
 #'  a visualization funtion to show agent requirement or schedules from
 #'  48 x 7 matrix, a.k.a, schedule_viewer
-#' @param m - a 48 x 7 matrix
+#' @param m a 48 x 7 matrix
 #' @return a ggplot object that plot 48 half hour window each day for 7 day
 #' @family scheduler_viewer
 schedule_viewer1 <- schedule_viewer
@@ -352,7 +371,7 @@ schedule_viewer1 <- schedule_viewer
 #' @description
 #'  a visualization funtion to show agent requirement or schedules from two
 #'  48 x 7 matrices, compare requirement and schedule side by side
-#' @param m1, m2 - 48 x 7 matrices
+#' @param{m1, m2} 48 x 7 matrices
 #' @return a ggplot object that plot 48 half hour window each day for 7 day
 #' @family scheduler_viewer
 schedule_viewer2 <- function(
@@ -411,7 +430,7 @@ schedule_viewer2 <- function(
 #' @description
 #'  a visualization funtion to show agent requirement or schedules from 3
 #'  48 x 7 matrices, view details of 3 schedule modules side by side
-#' @param m1, m2, m3 - 48 x 7 matrices
+#' @param{m1, m2, m3} 48 x 7 matrices
 #' @return a ggplot object that plot 48 half hour window each day for 7 day
 #' @family scheduler_viewer
 schedule_viewer3 <- function(

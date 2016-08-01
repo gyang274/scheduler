@@ -10,7 +10,7 @@ schedule_viewer1(m, xlab_text = "Half-Hour Window",
   element_text_size = 22L)
 }
 \arguments{
-\item{m}{- a 48 x 7 matrix}
+\item{m}{a 48 x 7 matrix}
 }
 \value{
 a ggplot object that plot 48 half hour window each day for 7 day
