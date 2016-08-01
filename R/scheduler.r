@@ -377,7 +377,7 @@ schedule_viewer1 <- schedule_viewer
 #' @family scheduler_viewer
 schedule_viewer2 <- function(
   m1, m2, m1_label = "Agent Required", m2_label = "Agent Available",
-  legend_title = "Legend",
+  legend_title = "Legend", legend_position = "right",
   xlab_text = "Half-Hour Window", ylab_text = "Number of Agents",
   ggtitle_text = "Number of Agents by Half-Hour Window at Each Day",
   element_text_size = 22L
@@ -421,6 +421,7 @@ schedule_viewer2 <- function(
     scale_fill_discrete(name = legend_title) +
     theme(
       text = element_text(size = element_text_size),
+      legend.position = legend_position,
       axis.text.x = element_text(angle = 270, hjust = 1, vjust = 0.50)
     )
 
@@ -441,7 +442,7 @@ schedule_viewer3 <- function(
   m1_label = "Schedule Module 1",
   m2_label = "Schedule Module 2",
   m3_label = "Schedule Module 3",
-  legend_title = "Legend",
+  legend_title = "Legend", legend_position = "right",
   xlab_text = "Half-Hour Window", ylab_text = "Number of Agents",
   ggtitle_text = "Number of Agents by Half-Hour Window at Each Day",
   element_text_size = 22L
@@ -490,6 +491,7 @@ schedule_viewer3 <- function(
     scale_fill_discrete(name = legend_title) +
     theme(
       text = element_text(size = element_text_size),
+      legend.position = legend_position,
       axis.text.x = element_text(angle = 270, hjust = 1, vjust = 0.50)
     )
 

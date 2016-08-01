@@ -33,7 +33,7 @@ The package associated also a visualization function for viewing the requirement
 
 ```{r, fig.align='center', fig.cap='scheduler - visulation', fig.show='hold', out.width='100%'}
 #- visualize the requirement
-scheduler::schedule_viewer1(m = agent_requirement, element_text_size = 4L)
+scheduler::schedule_viewer1(m = agent_requirement, element_text_size = 6L)
 ```
 
 The `scheduler` function takes `ar (agent_requirement)` as requirement, and makes shedules based on `sm (schedule module)` and `cr (constraints)` as constraints. 
@@ -64,18 +64,25 @@ Suppose we want a schedule that can use all 3 schedule modules with default cons
 
 ```{r, cache=FALSE, message=FALSE}
 #- suppose we want a schedule with default setting
-(ss_list_01 <- scheduler(ar = agent_requirement, sm = c(1L, 2L, 3L)))
+(ss_list_01 <- scheduler(
+  ar = agent_requirement, sm = c(1L, 2L, 3L), timeout = 10L
+))
 
 ## num of agent needed in total with this schedule
 with(ss_list_01, sum(s1 + s2 + s3))
+```
 
+```{r, fig.align='center', fig.cap='scheduler - visulation', fig.show='hold', out.width='100%'}
 ## a comparision on schedule and requirement side by side
 scheduler::schedule_viewer2(
   m1 = agent_requirement, m2 = ss_list_01[["ss"]], 
   m1_label = "Agent Required", m2_label = "Agent Available",
-  element_text_size = 4L
+  legend_position = "bottom",
+  element_text_size = 6L
 )
+```
 
+```{r, fig.align='center', fig.cap='scheduler - visulation', fig.show='hold', out.width='100%'}
 ## view of agent start time distribution on 3 schedule module side by side
 scheduler::schedule_viewer3(
   m1 = ss_list_01[["s1"]], 
@@ -84,7 +91,8 @@ scheduler::schedule_viewer3(
   m1_label = "Schedule Module 1",
   m2_label = "Schedule Module 2",
   m3_label = "Schedule Module 3",
-  element_text_size = 4L
+  legend_position = "bottom",
+  element_text_size = 6L
 )
 ```
 
@@ -101,7 +109,9 @@ What if we want a schedule that can use schedule module 2L and 3L only, and does
 ## and disable half-hour start, more constraints - less effective.
 ss_list_02 <- scheduler(
   ar = agent_requirement, sm = c(2L, 3L),
-  allow.half.hour.start = FALSE)
+  allow.half.hour.start = FALSE,
+  timeout = 10L
+)
 
 ## compare the num of total agent required by solution ss_list_02
 ## with solution ss_list_01

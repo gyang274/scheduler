@@ -6,8 +6,8 @@
 \usage{
 schedule_viewer3(m1, m2, m3, m1_label = "Schedule Module 1",
   m2_label = "Schedule Module 2", m3_label = "Schedule Module 3",
-  legend_title = "Legend", xlab_text = "Half-Hour Window",
-  ylab_text = "Number of Agents",
+  legend_title = "Legend", legend_position = "right",
+  xlab_text = "Half-Hour Window", ylab_text = "Number of Agents",
   ggtitle_text = "Number of Agents by Half-Hour Window at Each Day",
   element_text_size = 22L)
 }

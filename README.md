@@ -76,7 +76,7 @@ The package associated also a visualization function for viewing the requirement
 
 ``` r
 #- visualize the requirement
-scheduler::schedule_viewer1(m = agent_requirement, element_text_size = 4L)
+scheduler::schedule_viewer1(m = agent_requirement, element_text_size = 14L)
 ```
 
 <img src="fig/unnamed-chunk-3-1.png" alt="scheduler - visulation" width="100%" />
@@ -112,7 +112,9 @@ Suppose we want a schedule that can use all 3 schedule modules with default cons
 
 ``` r
 #- suppose we want a schedule with default setting
-(ss_list_01 <- scheduler(ar = agent_requirement, sm = c(1L, 2L, 3L)))
+(ss_list_01 <- scheduler(
+  ar = agent_requirement, sm = c(1L, 2L, 3L), timeout = 10L
+))
 #> $s1
 #>       Sunday Monday Tuesday Wednesday Thursday Friday Saturday
 #> 00:00      0      8       2         1        1      0        2
@@ -331,7 +333,7 @@ with(ss_list_01, sum(s1 + s2 + s3))
 scheduler::schedule_viewer2(
   m1 = agent_requirement, m2 = ss_list_01[["ss"]], 
   m1_label = "Agent Required", m2_label = "Agent Available",
-  element_text_size = 4L
+  element_text_size = 14L
 )
 ```
 
@@ -349,7 +351,7 @@ scheduler::schedule_viewer3(
   m1_label = "Schedule Module 1",
   m2_label = "Schedule Module 2",
   m3_label = "Schedule Module 3",
-  element_text_size = 4L
+  element_text_size = 14L
 )
 ```
 
@@ -371,7 +373,9 @@ What if we want a schedule that can use schedule module 2L and 3L only, and does
 ## and disable half-hour start, more constraints - less effective.
 ss_list_02 <- scheduler(
   ar = agent_requirement, sm = c(2L, 3L),
-  allow.half.hour.start = FALSE)
+  allow.half.hour.start = FALSE,
+  timeout = 10L
+)
 
 ## compare the num of total agent required by solution ss_list_02
 ## with solution ss_list_01

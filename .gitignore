@@ -2,8 +2,7 @@
 .Rhistory
 .RData
 .Ruserdata
-app/
-doc/
-mat/
-wfx/
-inst/doc
+/app/
+/doc/
+/mat/
+/wfx/

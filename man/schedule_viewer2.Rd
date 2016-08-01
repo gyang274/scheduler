@@ -6,7 +6,8 @@
 \usage{
 schedule_viewer2(m1, m2, m1_label = "Agent Required",
   m2_label = "Agent Available", legend_title = "Legend",
-  xlab_text = "Half-Hour Window", ylab_text = "Number of Agents",
+  legend_position = "right", xlab_text = "Half-Hour Window",
+  ylab_text = "Number of Agents",
   ggtitle_text = "Number of Agents by Half-Hour Window at Each Day",
   element_text_size = 22L)
 }
