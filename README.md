@@ -79,7 +79,7 @@ The package associated also a visualization function for viewing the requirement
 scheduler::schedule_viewer1(m = agent_requirement, element_text_size = 14L)
 ```
 
-<img src="fig/unnamed-chunk-3-1.png" alt="scheduler - visulation" width="100%" />
+<img src="fig/README-unnamed-chunk-3-1.png" alt="scheduler - visulation" width="100%" />
 <p class="caption">
 scheduler - visulation
 </p>
@@ -337,7 +337,7 @@ scheduler::schedule_viewer2(
 )
 ```
 
-<img src="fig/unnamed-chunk-5-1.png" alt="scheduler - visulation" width="100%" />
+<img src="fig/README-unnamed-chunk-5-1.png" alt="scheduler - visulation" width="100%" />
 <p class="caption">
 scheduler - visulation
 </p>
@@ -355,7 +355,7 @@ scheduler::schedule_viewer3(
 )
 ```
 
-<img src="fig/unnamed-chunk-6-1.png" alt="scheduler - visulation" width="100%" />
+<img src="fig/README-unnamed-chunk-6-1.png" alt="scheduler - visulation" width="100%" />
 <p class="caption">
 scheduler - visulation
 </p>
