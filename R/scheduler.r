@@ -47,13 +47,13 @@
 #' @family scheduler
 scheduler <- function(ar, sm = c(1L, 2L, 3L),
   cr = c(3L:12L, 51L:60L, 99L:108L, 147L:156L,
-         195L:204L, 243L-252L, 291L:300L),
+         195L:204L, 243L:252L, 291L:300L),
   allow.half.hour.start = TRUE,
   write.model.into.file = NULL, timeout = 60L) {
 
   sm <- sort(unique(sm))
 
-  if ( !all(sm %in% c(1L, 2L, 3L)) ) {
+  if ( is.null(sm) || !all(sm %in% c(1L, 2L, 3L)) ) {
 
     stop("scheduler: sm must be a vector of 1L, 2L, 3L.\n")
 
@@ -243,7 +243,7 @@ scheduler_solution_constructor <- function(scheduleOptModel, sm) {
   for ( a_sm_idx in 1L:length(sm) ) {
 
     eval(parse(text = paste0(
-      's', sm[a_sm_idx], ' <- matrix(lp_vec[(a_sm_idx - 1L) * 336L + 1L:336L], 48L, 7L)'
+      's', sm[a_sm_idx], '[1L:336L] <- matrix(lp_vec[(a_sm_idx - 1L) * 336L + 1L:336L], 48L, 7L)'
     )))
 
   }
@@ -294,15 +294,15 @@ agentOnTimeFromSchedule <- function(ss_lst) {
 #------------------------------------ plot ------------------------------------#
 #------------------------------------------------------------------------------#
 
-#' plot_schedule
+#' schedule_viewer
 #' @description
 #'  a visualization funtion to show agent requirement or schedules from
 #'  48 x 7 matrix
 #' @param m - a 48 x 7 matrix
 #' @return a ggplot object that plot 48 half hour window each day for 7 day
-#' @family scheduler
-plot_schedule <- function(m,
-  xlab_text = "Half-Hour Window", ylab_text = "Number of Agents",
+#' @family scheduler_viewer
+schedule_viewer <- function(
+  m, xlab_text = "Half-Hour Window", ylab_text = "Number of Agents",
   ggtitle_text = "Number of Agents by Half-Hour Window at Each Day",
   element_text_size = 22L
   ) {
@@ -338,4 +338,141 @@ plot_schedule <- function(m,
   return(g)
 }
 
+
+#' schedule_viewer1
+#' @description
+#'  a visualization funtion to show agent requirement or schedules from
+#'  48 x 7 matrix, a.k.a, schedule_viewer
+#' @param m - a 48 x 7 matrix
+#' @return a ggplot object that plot 48 half hour window each day for 7 day
+#' @family scheduler_viewer
+schedule_viewer1 <- schedule_viewer
+
+#' schedule_viewer2
+#' @description
+#'  a visualization funtion to show agent requirement or schedules from two
+#'  48 x 7 matrices, compare requirement and schedule side by side
+#' @param m1, m2 - 48 x 7 matrices
+#' @return a ggplot object that plot 48 half hour window each day for 7 day
+#' @family scheduler_viewer
+schedule_viewer2 <- function(
+  m1, m2, m1_label = "Agent Required", m2_label = "Agent Available",
+  legend_title = "Legend",
+  xlab_text = "Half-Hour Window", ylab_text = "Number of Agents",
+  ggtitle_text = "Number of Agents by Half-Hour Window at Each Day",
+  element_text_size = 22L
+) {
+
+  #- convert m1 m2 48 x 7 matrix into long format
+  eval(parse(text = paste0(
+    "m1L <- c(", paste0(sprintf("m1[ , %s]", c(1L:7L)), collapse = ", "), ")"
+  )))
+
+  eval(parse(text = paste0(
+    "m2L <- c(", paste0(sprintf("m2[ , %s]", c(1L:7L)), collapse = ", "), ")"
+  )))
+
+  #- add hours and days on mL long format
+  mT <- data.frame(
+    n = c(m1L, m2L),
+    l = rep(factor(x = c(m1_label, m2_label), levels = c(m1_label, m2_label)), each = 336L),
+    i = rep(1L:336L, times = 2L),
+    h = rep(rep(
+      paste0(formatC(rep(0L:23L, each = 2L), width = 2L, flag = "0"), ":", c("00", "30")),
+      times = 7L
+      ),
+      times = 2L
+    ),
+    d = rep(rep(
+      factor(
+        x = c("Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"),
+        levels = c("Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday")
+      ),
+      each = 48L
+      ),
+      times = 2L
+    )
+  )
+
+  #- create a number of agent by each half-hour window each day plot
+  g <- ggplot2::ggplot(data = mT) +
+    ggplot2::geom_bar(aes(x = h, y = n, fill = l), stat = "identity", position = "dodge") + facet_wrap(~ d) +
+    ggtitle(ggtitle_text) + xlab(xlab_text) + ylab(ylab_text) +
+    scale_fill_discrete(name = legend_title) +
+    theme(
+      text = element_text(size = element_text_size),
+      axis.text.x = element_text(angle = 270, hjust = 1, vjust = 0.50)
+    )
+
+  return(g)
+}
+
+#' schedule_viewer3
+#' @description
+#'  a visualization funtion to show agent requirement or schedules from 3
+#'  48 x 7 matrices, view details of 3 schedule modules side by side
+#' @param m1, m2, m3 - 48 x 7 matrices
+#' @return a ggplot object that plot 48 half hour window each day for 7 day
+#' @family scheduler_viewer
+schedule_viewer3 <- function(
+  m1, m2, m3,
+  m1_label = "Schedule Module 1",
+  m2_label = "Schedule Module 2",
+  m3_label = "Schedule Module 3",
+  legend_title = "Legend",
+  xlab_text = "Half-Hour Window", ylab_text = "Number of Agents",
+  ggtitle_text = "Number of Agents by Half-Hour Window at Each Day",
+  element_text_size = 22L
+) {
+
+  #- convert m1 m2 m3 48 x 7 matrix into long format
+  for ( i in 1L:3L ) {
+
+    eval(parse(text = paste0(
+      "m", i, "L <- c(", paste0(sprintf(paste0("m", i, "[ , %s]"), c(1L:7L)), collapse = ", "), ")"
+    )))
+
+  }
+
+  #- add hours and days on mL long format
+  mT <- data.frame(
+    n = c(m1L, m2L, m3L),
+    l = rep(factor(
+      x = c(m1_label, m2_label, m3_label),
+      levels = c(m1_label, m2_label, m3_label))
+      ,
+      each = 336L
+    ),
+    i = rep(1L:336L, times = 3L),
+    h = rep(rep(
+      paste0(formatC(rep(0L:23L, each = 2L), width = 2L, flag = "0"), ":", c("00", "30")),
+      times = 7L
+    ),
+    times = 3L
+    ),
+    d = rep(rep(
+      factor(
+        x = c("Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"),
+        levels = c("Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday")
+      ),
+      each = 48L
+    ),
+    times = 3L
+    )
+  )
+
+  #- create a number of agent by each half-hour window each day plot
+  g <- ggplot2::ggplot(data = mT) +
+    ggplot2::geom_bar(aes(x = h, y = n, fill = l), stat = "identity", position = "dodge") + facet_wrap(~ d) +
+    ggtitle(ggtitle_text) + xlab(xlab_text) + ylab(ylab_text) +
+    scale_fill_discrete(name = legend_title) +
+    theme(
+      text = element_text(size = element_text_size),
+      axis.text.x = element_text(angle = 270, hjust = 1, vjust = 0.50)
+    )
+
+  return(g)
+}
 #------------------------------------------------------------------------------#
+
+
