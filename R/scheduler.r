@@ -371,7 +371,8 @@ schedule_viewer1 <- schedule_viewer
 #' @description
 #'  a visualization funtion to show agent requirement or schedules from two
 #'  48 x 7 matrices, compare requirement and schedule side by side
-#' @param{m1, m2} 48 x 7 matrices
+#' @param m1 a 48 x 7 matrix
+#' @param m2 a 48 x 7 matrix
 #' @return a ggplot object that plot 48 half hour window each day for 7 day
 #' @family scheduler_viewer
 schedule_viewer2 <- function(
@@ -430,7 +431,9 @@ schedule_viewer2 <- function(
 #' @description
 #'  a visualization funtion to show agent requirement or schedules from 3
 #'  48 x 7 matrices, view details of 3 schedule modules side by side
-#' @param{m1, m2, m3} 48 x 7 matrices
+#' @param m1 a 48 x 7 matrix
+#' @param m2 a 48 x 7 matrix
+#' @param m3 a 48 x 7 matrix
 #' @return a ggplot object that plot 48 half hour window each day for 7 day
 #' @family scheduler_viewer
 schedule_viewer3 <- function(

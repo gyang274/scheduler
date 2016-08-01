@@ -11,7 +11,9 @@ schedule_viewer2(m1, m2, m1_label = "Agent Required",
   element_text_size = 22L)
 }
 \arguments{
-\item{{m1, }{m2} 48 x 7 matrices}
+\item{m1}{a 48 x 7 matrix}
+
+\item{m2}{a 48 x 7 matrix}
 }
 \value{
 a ggplot object that plot 48 half hour window each day for 7 day
