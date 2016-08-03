@@ -5,9 +5,10 @@ Version: 0.1.0
 Author: Guang Yang
 Maintainer: Guang Yang <gyang274@gmail.com>
 Description: Create optimal schedule with respect to requirements and constraints.
-  The scheduler package is designed to fulfill scheduling process in operation center,
-  where the requirements are often the number of agents needed at each hour each day,
-  and the constraints are often the availability of each agent at each hour each day.
+    scheduler is designed to create optimal schedule for operation center such as
+    customer service center, warehouse fulfillment center, security center, and etc.,
+    where the requirements are often the number of agents needed at each hour each day,
+    and the constraints are often the availability of each agent at each hour each day.
 License: file LICENSE
 LazyData: TRUE
 Depends: lpSolveAPI, magrittr, ggplot2
