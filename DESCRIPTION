@@ -8,7 +8,7 @@ Description: Create optimal schedule with respect to requirements and constraint
   The scheduler package is designed to fulfill scheduling process in operation center,
   where the requirements are often the number of agents needed at each hour each day,
   and the constraints are often the availability of each agent at each hour each day.
-License: MIT + file LICENSE
+License: file LICENSE
 LazyData: TRUE
 Depends: lpSolveAPI, magrittr, ggplot2
 URL: http://github.com/gyang274/scheduler
