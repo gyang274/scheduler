@@ -161,6 +161,7 @@ scheduler <- function(ar, sm = c(1L, 2L, 3L),
   ss_lst <- scheduler_solution_constructor(scheduleOptModel, sm)
 
   return(list(
+    ar = ar,
     s1 = ss_lst[["s1"]], s2 = ss_lst[["s2"]], s3 = ss_lst[["s3"]],
     ss = ss_lst[["ss"]], scheduleOptModel = scheduleOptModel
   ))
